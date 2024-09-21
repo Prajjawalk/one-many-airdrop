@@ -16,7 +16,7 @@ contract CreatePoolScript is Script {
     address constant POOL_MANAGER = address(0x0); // TODO: Update once deployed
     address constant MUNI_ADDRESS = address(0xbD97BF168FA913607b996fab823F88610DCF7737); //mUNI deployed to GOERLI -- insert your own contract address here
     address constant MUSDC_ADDRESS = address(0xa468864e673a807572598AB6208E49323484c6bF); //mUSDC deployed to GOERLI -- insert your own contract address here
-    address constant HOOK_ADDRESS = address(0x3CA2cD9f71104a6e1b67822454c725FcaeE35fF6); //address of the hook contract deployed to goerli -- you can use this hook address or deploy your own!
+    address constant HOOK_ADDRESS = address(0x5D36C030aeA5C47Fe5662efAE8D01f8cd8740044); //address of the hook contract deployed to goerli -- you can use this hook address or deploy your own!
 
     function run() external {
         // sort the tokens!

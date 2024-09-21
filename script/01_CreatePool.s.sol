@@ -9,19 +9,22 @@ import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
 import {CurrencyLibrary, Currency} from "v4-core/src/types/Currency.sol";
 import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CreatePoolScript is Script {
     using CurrencyLibrary for Currency;
+    
 
     //addresses with contracts deployed
-    address constant GOERLI_POOLMANAGER = address(0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b); //pool manager deployed to GOERLI
-    address constant MUNI_ADDRESS = address(0xbD97BF168FA913607b996fab823F88610DCF7737); //mUNI deployed to GOERLI -- insert your own contract address here
-    address constant MUSDC_ADDRESS = address(0xa468864e673a807572598AB6208E49323484c6bF); //mUSDC deployed to GOERLI -- insert your own contract address here
-    address constant HOOK_ADDRESS = address(0x3CA2cD9f71104a6e1b67822454c725FcaeE35fF6); //address of the hook contract deployed to goerli -- you can use this hook address or deploy your own!
+    address constant GOERLI_POOLMANAGER = address(0xf242cE588b030d0895C51C0730F2368680f80644); //pool manager deployed to GOERLI
+    address constant MUNI_ADDRESS = address(0xf485Be8cE0B2f71f28424c2CEBaCCFF77D2A6Fa5); //mUNI deployed to GOERLI -- insert your own contract address here
+    address constant MUSDC_ADDRESS = address(0x0CC109E58b9945577c7Ea07A429E82C0B210D41f); //mUSDC deployed to GOERLI -- insert your own contract address here
+    address constant HOOK_ADDRESS = address(0x5D36C030aeA5C47Fe5662efAE8D01f8cd8740044); //address of the hook contract deployed to goerli -- you can use this hook address or deploy your own!
 
     IPoolManager manager = IPoolManager(GOERLI_POOLMANAGER);
 
     function run() external {
+        bytes memory ZERO_BYTES = new bytes(0);
         // sort the tokens!
         address token0 = uint160(MUSDC_ADDRESS) < uint160(MUNI_ADDRESS) ? MUSDC_ADDRESS : MUNI_ADDRESS;
         address token1 = uint160(MUSDC_ADDRESS) < uint160(MUNI_ADDRESS) ? MUNI_ADDRESS : MUSDC_ADDRESS;
@@ -31,7 +34,7 @@ contract CreatePoolScript is Script {
         // floor(sqrt(1) * 2^96)
         uint160 startingPrice = 79228162514264337593543950336;
 
-        bytes memory hookData = abi.encode(block.timestamp);
+        // bytes memory hookData = abi.encode(block.timestamp);
 
         PoolKey memory pool = PoolKey({
             currency0: Currency.wrap(token0),
@@ -49,6 +52,6 @@ contract CreatePoolScript is Script {
         console.logBytes32(bytes32(idBytes));
 
         vm.broadcast();
-        manager.initialize(pool, startingPrice, hookData);
+        manager.initialize(pool, startingPrice, ZERO_BYTES);
     }
 }
