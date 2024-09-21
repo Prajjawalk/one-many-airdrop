@@ -115,7 +115,6 @@ contract MultiDropTest is Test, Fixtures {
         bytes memory swapdata = abi.encode(true, vm.addr(1), addrs);
 
         BalanceDelta swapDelta = swapMod(key, zeroForOne, amountSpecified, swapdata, 1e10);
-        // console.log("swap delta is ", swapDelta.amount1());
 
         // ------------------- //
         assertEq(int256(swapDelta.amount0()), amountSpecified);

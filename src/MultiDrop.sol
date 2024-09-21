@@ -54,30 +54,6 @@ contract MultiDrop is BaseHook {
     // NOTE: see IHooks.sol for function documentation
     // -----------------------------------------------
 
-    // function beforeSwap(address sender, PoolKey calldata key, IPoolManager.SwapParams calldata swapParams, bytes calldata hookData)
-    //     external
-    //     override
-    //     returns (bytes4, BeforeSwapDelta, uint24)
-    // {
-    //     // beforeSwapCount[key.toId()]++;
-    //     // (bool isOneMany, address[] memory receivers) = abi.decode(hookData, (bool, address[]));
-    //     // if(isOneMany) {
-          
-    //     //   require(receivers.length > 0);
-          
-    //     //   if(swapParams.zeroForOne) {
-    //     //     Currency token1 = key.currency1;
-    //     //     preSwapBalances[sender] = token1.balanceOf(sender);
-    //     //   } else {
-    //     //     Currency token0 = key.currency0;
-    //     //     preSwapBalances[sender] = token0.balanceOf(sender);
-    //     //   }
-    //     // }
-
-        
-    //     return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
-    // }
-
 
     struct MyData {
       int128 amount;
@@ -122,8 +98,6 @@ contract MultiDrop is BaseHook {
             }
           }
 
-          // poolManager.take(data.toSend, sender,stdMath.abs(data.amount));
-          // poolManager.settle();
         }
         return (BaseHook.afterSwap.selector, data.amount); // positive number
     }
