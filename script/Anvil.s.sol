@@ -16,17 +16,26 @@ import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {CurrencyLibrary, Currency} from "v4-core/src/types/Currency.sol";
 import {MultiDrop} from "../src/MultiDrop.sol";
 import {HookMiner} from "../test/utils/HookMiner.sol";
+import {LockNDrop} from "../src/LockNDrop.sol";
 
 /// @notice Forge script for deploying v4 & hooks to **anvil**
 /// @dev This script only works on an anvil RPC because v4 exceeds bytecode limits
 contract CounterScript is Script {
     address constant CREATE2_DEPLOYER = address(0x4e59b44847b379578588920cA78FbF26c0B4956C);
+    LockNDrop lockNDrop;
+
+    struct Receiver {
+      uint256 chainId;
+      address receiver;
+    }
 
     function setUp() public {}
 
     function run() public {
         vm.broadcast();
         IPoolManager manager = deployPoolManager();
+        // Deploy LockNDrop
+        lockNDrop = new LockNDrop();
 
         // hook contracts must have specific flags encoded in the address
         uint160 permissions = 
@@ -36,13 +45,13 @@ contract CounterScript is Script {
 
         // Mine a salt that will produce a hook address with the correct permissions
         (address hookAddress, bytes32 salt) =
-            HookMiner.find(CREATE2_DEPLOYER, permissions, type(MultiDrop).creationCode, abi.encode(address(manager)));
+            HookMiner.find(CREATE2_DEPLOYER, permissions, type(MultiDrop).creationCode, abi.encode(address(manager), address(lockNDrop)));
 
         // ----------------------------- //
         // Deploy the hook using CREATE2 //
         // ----------------------------- //
         vm.broadcast();
-        MultiDrop counter = new MultiDrop{salt: salt}(manager);
+        MultiDrop counter = new MultiDrop{salt: salt}(manager, lockNDrop);
         require(address(counter) == hookAddress, "CounterScript: hook address mismatch");
 
         // Additional helpers for interacting with the pool
@@ -129,10 +138,10 @@ contract CounterScript is Script {
             PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false});
 
         address testReceiver = vm.addr(2);
-        address[] memory addrs = new address[](3);
-        addrs[0] = testReceiver;
-        addrs[1] = vm.addr(3);
-        addrs[2] = vm.addr(4);
+        Receiver[] memory addrs = new Receiver[](3);
+        addrs[0] = Receiver({ chainId: 31337, receiver: testReceiver});
+        addrs[1] = Receiver( { chainId: 31337, receiver: vm.addr(3)});
+        addrs[2] = Receiver({chainId: 31337, receiver: vm.addr(4)});
         bytes memory swapdata = abi.encode(true, msg.sender, addrs);
         uint256 value = uint256(stdMath.abs( 10 ether - amountSpecified));
         swapRouter.swap{value: value}(poolKey, params, testSettings, swapdata);

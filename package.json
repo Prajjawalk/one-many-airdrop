@@ -1,0 +1,18 @@
+{
+  "name": "one-many-airdrop-v1",
+  "version": "1.0.0",
+  "description": "One-to-many-flash-airdrop in single transaction",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hyperlane-xyz/core": "^5.2.1"
+  }
+}

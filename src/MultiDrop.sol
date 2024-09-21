@@ -12,9 +12,12 @@ import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeS
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {stdMath} from "forge-std/stdMath.sol";
 import {console} from "forge-std/console.sol";
+import {LockNDrop} from "./LockNDrop.sol";
 
 contract MultiDrop is BaseHook {
     using PoolIdLibrary for PoolKey;
+
+    LockNDrop lockNDrop;
 
     // NOTE: ---------------------------------------------------------
     // state variables should typically be unique to a pool
@@ -29,7 +32,9 @@ contract MultiDrop is BaseHook {
     // Mapping to store tokenB balances before the swap for each user
     // mapping(address => uint256) public preSwapBalances;
 
-    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
+    constructor(IPoolManager _poolManager, LockNDrop _lockNDrop) BaseHook(_poolManager) {
+      lockNDrop = _lockNDrop;
+    }
 
     function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
         return Hooks.Permissions({
@@ -62,13 +67,18 @@ contract MultiDrop is BaseHook {
       Currency toSend;
     }
 
+    struct Receiver {
+      uint256 chainId;
+      address receiver;
+    }
+
     function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata swapParams, BalanceDelta delta, bytes calldata hookData)
         external
         override
         returns (bytes4, int128)
     {
         // afterSwapCount[key.toId()]++;
-        (bool isOneMany, address sender, address[] memory receivers) = abi.decode(hookData, (bool, address, address[]));
+        (bool isOneMany, address sender,  Receiver[] memory receivers) = abi.decode(hookData, (bool, address, Receiver[]));
         
         MyData memory data = MyData({
           amount: 0,
@@ -91,10 +101,17 @@ contract MultiDrop is BaseHook {
           data.amountPerAddress = stdMath.abs(data.amount)/receivers.length;
           
           for (uint i = 0; i < receivers.length; i++) {
+            if(receivers[i].chainId != block.chainid) {
+              bytes memory body = abi.encode(receivers[i].receiver, data.amountPerAddress, receivers[i].chainId);
+              poolManager.take(data.toSend, address(lockNDrop), data.amountPerAddress);
+              lockNDrop.crossChainTransfer(body);
+              continue;
+            }
+
             if (i == receivers.length - 1) {
-              poolManager.take(data.toSend, receivers[i], uint256(stdMath.abs(data.amount)) - data.amountPerAddress * (receivers.length - 1));
+              poolManager.take(data.toSend, receivers[i].receiver, uint256(stdMath.abs(data.amount)) - data.amountPerAddress * (receivers.length - 1));
             } else {
-              poolManager.take(data.toSend, receivers[i], data.amountPerAddress);
+              poolManager.take(data.toSend, receivers[i].receiver, data.amountPerAddress);
             }
           }
 

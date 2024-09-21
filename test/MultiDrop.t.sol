@@ -18,6 +18,7 @@ import {LiquidityAmounts} from "v4-core/test/utils/LiquidityAmounts.sol";
 import {IPositionManager} from "v4-periphery/src/interfaces/IPositionManager.sol";
 import {EasyPosm} from "./utils/EasyPosm.sol";
 import {Fixtures} from "./utils/Fixtures.sol";
+import {LockNDrop} from "../src/LockNDrop.sol";
 import {console} from "forge-std/console.sol";
 
 contract MultiDropTest is Test, Fixtures {
@@ -26,12 +27,18 @@ contract MultiDropTest is Test, Fixtures {
     using CurrencyLibrary for Currency;
     using StateLibrary for IPoolManager;
 
+    LockNDrop lockNDrop;
     MultiDrop hook;
     PoolId poolId;
 
     uint256 tokenId;
     int24 tickLower;
     int24 tickUpper;
+
+    struct Receiver {
+      uint256 chainId;
+      address receiver;
+    }
 
     function setUp() public {
         // creates the pool manager, utility routers, and test tokens
@@ -40,12 +47,15 @@ contract MultiDropTest is Test, Fixtures {
 
         deployAndApprovePosm(manager);
 
+        // Deploy LockNDrop
+        lockNDrop = new LockNDrop();
+
         // Deploy the hook to an address with the correct flags
         address flags = address(
             uint160(
                 Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
             ) ^ (0x4444 << 144));
-        bytes memory constructorArgs = abi.encode(manager); //Add all the necessary constructor arguments from the hook
+        bytes memory constructorArgs = abi.encode(manager, address(lockNDrop)); //Add all the necessary constructor arguments from the hook
         deployCodeTo("MultiDrop.sol:MultiDrop", constructorArgs, flags);
         hook = MultiDrop(flags);
 
@@ -108,10 +118,10 @@ contract MultiDropTest is Test, Fixtures {
         bool zeroForOne = true;
         int256 amountSpecified = -9e18; // negative number indicates exact input swap!
         address testReceiver = vm.addr(2);
-        address[] memory addrs = new address[](3);
-        addrs[0] = testReceiver;
-        addrs[1] = vm.addr(3);
-        addrs[2] = vm.addr(4);
+        Receiver[] memory addrs = new Receiver[](3);
+        addrs[0] = Receiver({ chainId: 31337, receiver: testReceiver});
+        addrs[1] = Receiver( { chainId: 31337, receiver: vm.addr(3)});
+        addrs[2] = Receiver({chainId: 31337, receiver: vm.addr(4)});
         bytes memory swapdata = abi.encode(true, vm.addr(1), addrs);
 
         BalanceDelta swapDelta = swapMod(key, zeroForOne, amountSpecified, swapdata, 1e10);

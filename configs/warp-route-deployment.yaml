@@ -1,0 +1,30 @@
+rootstocktestnet:
+  interchainSecurityModule:
+    modules:
+      - relayer: "0x264f9EF85C21DE49451c3636116668889Ca41aab"
+        type: trustedRelayerIsm
+      - domains: {}
+        owner: "0x264f9EF85C21DE49451c3636116668889Ca41aab"
+        type: defaultFallbackRoutingIsm
+    threshold: 1
+    type: staticAggregationIsm
+  isNft: false
+  mailbox: "0xCfA3E807DEF506Db480328cB975fC9108eb59e52"
+  owner: "0x264f9EF85C21DE49451c3636116668889Ca41aab"
+  type: synthetic
+sepolia:
+  interchainSecurityModule:
+    modules:
+      - relayer: "0x264f9EF85C21DE49451c3636116668889Ca41aab"
+        type: trustedRelayerIsm
+      - domains: {}
+        owner: "0x264f9EF85C21DE49451c3636116668889Ca41aab"
+        type: defaultFallbackRoutingIsm
+    threshold: 1
+    type: staticAggregationIsm
+  isNft: false
+  mailbox: "0xfFAEF09B3cd11D9b20d1a19bECca54EEC2884766"
+  owner: "0x264f9EF85C21DE49451c3636116668889Ca41aab"
+  token: "0xf485Be8cE0B2f71f28424c2CEBaCCFF77D2A6Fa5"
+  type: collateral
+
