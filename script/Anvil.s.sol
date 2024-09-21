@@ -14,7 +14,7 @@ import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
 import {Constants} from "v4-core/src/../test/utils/Constants.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {CurrencyLibrary, Currency} from "v4-core/src/types/Currency.sol";
-import {Counter} from "../src/Counter.sol";
+import {MultiDrop} from "../src/MultiDrop.sol";
 import {HookMiner} from "../test/utils/HookMiner.sol";
 
 /// @notice Forge script for deploying v4 & hooks to **anvil**
@@ -29,20 +29,20 @@ contract CounterScript is Script {
         IPoolManager manager = deployPoolManager();
 
         // hook contracts must have specific flags encoded in the address
-        uint160 permissions = uint160(
-            Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG
-                | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
-        );
+        uint160 permissions = 
+            uint160(
+                Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG
+            );
 
         // Mine a salt that will produce a hook address with the correct permissions
         (address hookAddress, bytes32 salt) =
-            HookMiner.find(CREATE2_DEPLOYER, permissions, type(Counter).creationCode, abi.encode(address(manager)));
+            HookMiner.find(CREATE2_DEPLOYER, permissions, type(MultiDrop).creationCode, abi.encode(address(manager)));
 
         // ----------------------------- //
         // Deploy the hook using CREATE2 //
         // ----------------------------- //
         vm.broadcast();
-        Counter counter = new Counter{salt: salt}(manager);
+        MultiDrop counter = new MultiDrop{salt: salt}(manager);
         require(address(counter) == hookAddress, "CounterScript: hook address mismatch");
 
         // Additional helpers for interacting with the pool
@@ -119,7 +119,7 @@ contract CounterScript is Script {
 
         // swap some tokens
         bool zeroForOne = true;
-        int256 amountSpecified = 1 ether;
+        int256 amountSpecified = - 1 ether;
         IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
             zeroForOne: zeroForOne,
             amountSpecified: amountSpecified,
@@ -127,6 +127,14 @@ contract CounterScript is Script {
         });
         PoolSwapTest.TestSettings memory testSettings =
             PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false});
-        swapRouter.swap(poolKey, params, testSettings, ZERO_BYTES);
+
+        address testReceiver = vm.addr(2);
+        address[] memory addrs = new address[](3);
+        addrs[0] = testReceiver;
+        addrs[1] = vm.addr(3);
+        addrs[2] = vm.addr(4);
+        bytes memory swapdata = abi.encode(true, msg.sender, addrs);
+        uint256 value = uint256(stdMath.abs( 10 ether - amountSpecified));
+        swapRouter.swap{value: value}(poolKey, params, testSettings, swapdata);
     }
 }
