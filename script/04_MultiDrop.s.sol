@@ -14,7 +14,7 @@ import {LockNDrop} from "../src/LockNDrop.sol";
 
 contract CounterScript is Script {
     address constant CREATE2_DEPLOYER = address(0x4e59b44847b379578588920cA78FbF26c0B4956C);
-    address constant SEPOLIA_POOLMANAGER = address(0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b);
+    address constant SEPOLIA_POOLMANAGER = address(0xf242cE588b030d0895C51C0730F2368680f80644);
     LockNDrop lockNDrop;
 
     function setUp() public {}
@@ -28,7 +28,7 @@ contract CounterScript is Script {
 
         // Mine a salt that will produce a hook address with the correct flags
         (address hookAddress, bytes32 salt) =
-            HookMiner.find(CREATE2_DEPLOYER, flags, type(MultiDrop).creationCode, abi.encode(address(SEPOLIA_POOLMANAGER)));
+            HookMiner.find(CREATE2_DEPLOYER, flags, type(MultiDrop).creationCode, abi.encode(address(SEPOLIA_POOLMANAGER), lockNDrop));
 
         // Deploy the hook using CREATE2
         vm.broadcast();

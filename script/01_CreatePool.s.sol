@@ -19,7 +19,7 @@ contract CreatePoolScript is Script {
     address constant GOERLI_POOLMANAGER = address(0xf242cE588b030d0895C51C0730F2368680f80644); //pool manager deployed to GOERLI
     address constant MUNI_ADDRESS = address(0xf485Be8cE0B2f71f28424c2CEBaCCFF77D2A6Fa5); //mUNI deployed to GOERLI -- insert your own contract address here
     address constant MUSDC_ADDRESS = address(0x0CC109E58b9945577c7Ea07A429E82C0B210D41f); //mUSDC deployed to GOERLI -- insert your own contract address here
-    address constant HOOK_ADDRESS = address(0x5D36C030aeA5C47Fe5662efAE8D01f8cd8740044); //address of the hook contract deployed to goerli -- you can use this hook address or deploy your own!
+    address constant HOOK_ADDRESS = address(0xEc2569842C631A28E6d92C143121A10656E38044); //address of the hook contract deployed to goerli -- you can use this hook address or deploy your own!
 
     IPoolManager manager = IPoolManager(GOERLI_POOLMANAGER);
 
